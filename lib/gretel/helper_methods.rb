@@ -2,10 +2,6 @@ ActionView::Helpers::TagHelper::BOOLEAN_ATTRIBUTES << :itemscope
 
 module Gretel
   module HelperMethods
-    include ActionView::Helpers::UrlHelper
-    def controller # hack because ActionView::Helpers::UrlHelper needs a controller method
-    end
-    
     def self.included(base)
       base.send :helper_method, :breadcrumb_for, :breadcrumb
     end
@@ -44,18 +40,17 @@ module Gretel
       name, object = args[0], args[1]
       
       crumb = Crumbs.get_crumb(name, object)
-      out = [link_to_if(link_last, crumb.link.text, crumb.link.url, crumb.link.options.reverse_merge(link_options))]
-      
+      out = [self.class.helpers.link_to_if(link_last, crumb.link.text, crumb.link.url, crumb.link.options.reverse_merge(link_options))]
       while parent = crumb.parent
         last_parent = parent.name
         crumb = Crumbs.get_crumb(parent.name, parent.object)
-        out.unshift(link_to(crumb.link.text, crumb.link.url, crumb.link.options.reverse_merge(link_options)))
+        out.unshift(self.class.helpers.link_to(crumb.link.text, crumb.link.url, crumb.link.options.reverse_merge(link_options)))
       end
       
       # TODO: Refactor this
       if options[:autoroot] && name != :root && last_parent != :root
         crumb = Crumbs.get_crumb(:root)
-        out.unshift(link_to(crumb.link.text, crumb.link.url, crumb.link.options.reverse_merge(link_options)))
+        out.unshift(self.class.helpers.link_to(crumb.link.text, crumb.link.url, crumb.link.options.reverse_merge(link_options)))
       end
       
       out = out.map { |link| %Q{<span itemscope itemtype="http://data-vocabulary.org/Breadcrumb">#{link}</span>} } if options[:semantic]
